@@ -38,7 +38,46 @@ const WEATHER = {
   99: ["Thunderstorm", "⛈️", "⛈️", "storm"],
 };
 
+const USER_NAME = "Lacey";
+
 const $ = (id) => document.getElementById(id);
+
+// ---- Theme: light, dark, or follow the system ----
+const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
+
+function getThemePref() {
+  try { return localStorage.getItem("theme") || "system"; } catch { return "system"; }
+}
+
+function applyTheme(pref) {
+  const dark = pref === "dark" || (pref === "system" && systemDark.matches);
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  document.querySelectorAll("[data-theme-choice]").forEach((btn) => {
+    btn.setAttribute("aria-pressed", String(btn.dataset.themeChoice === pref));
+  });
+}
+
+document.querySelectorAll("[data-theme-choice]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const pref = btn.dataset.themeChoice;
+    try { localStorage.setItem("theme", pref); } catch {}
+    applyTheme(pref);
+  });
+});
+
+// When set to System, follow OS changes live
+systemDark.addEventListener("change", () => {
+  if (getThemePref() === "system") applyTheme("system");
+});
+
+applyTheme(getThemePref());
+
+// Greeting based on the local time at the selected location
+function greetingFor(isoTime) {
+  const h = parseInt(isoTime.slice(11, 13), 10);
+  const part = h < 5 ? "evening" : h < 12 ? "morning" : h < 17 ? "afternoon" : "evening";
+  return `Good ${part}, ${USER_NAME}`;
+}
 
 function describe(code, isDay = 1) {
   const [label, dayIcon, nightIcon, theme] = WEATHER[code] || ["Unknown", "🌡️", "🌡️", "cloudy"];
@@ -102,7 +141,8 @@ function render({ current, hourly, daily }) {
   const theme = now.theme === "clear" ? (current.is_day ? "clear-day" : "clear-night") : now.theme;
   document.body.className = theme;
 
-  // Current
+  // Greeting + current
+  $("greeting").textContent = greetingFor(current.time);
   $("temp").textContent = `${round(current.temperature_2m)}°`;
   $("condition").textContent = now.label;
   $("hilo").textContent = `H:${round(daily.temperature_2m_max[0])}°  L:${round(daily.temperature_2m_min[0])}°`;

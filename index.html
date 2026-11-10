@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Weather</title>
   <meta name="description" content="A simple glass-style weather app powered by Open-Meteo." />
+  <script>
+    // Apply the saved theme before the page paints to avoid a flash
+    (function () {
+      var pref = "system";
+      try { pref = localStorage.getItem("theme") || "system"; } catch (e) {}
+      var dark = pref === "dark" || (pref === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.dataset.theme = dark ? "dark" : "light";
+    })();
+  </script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body class="clear-day">
@@ -13,12 +22,20 @@
   <div class="blob b3"></div>
 
   <main class="app">
-    <form id="search" class="search" autocomplete="off">
-      <input id="query" class="glass" type="search" placeholder="Search for a city" aria-label="Search for a city" />
-      <ul id="results" class="glass results" hidden></ul>
-    </form>
+    <div class="topbar">
+      <form id="search" class="search" autocomplete="off">
+        <input id="query" class="glass" type="search" placeholder="Search for a city" aria-label="Search for a city" />
+        <ul id="results" class="glass results" hidden></ul>
+      </form>
+      <div class="glass theme-toggle" role="group" aria-label="Theme">
+        <button type="button" data-theme-choice="light">Light</button>
+        <button type="button" data-theme-choice="dark">Dark</button>
+        <button type="button" data-theme-choice="system">System</button>
+      </div>
+    </div>
 
     <section class="current">
+      <p id="greeting" class="greeting">Hello, Lacey</p>
       <h1 id="city">Boca Raton</h1>
       <div id="temp" class="temp">--°</div>
       <div id="condition" class="condition">Loading…</div>
